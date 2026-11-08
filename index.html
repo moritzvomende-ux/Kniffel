@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#172c31">
 <title>Kniffel – Dein Spielblock</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kniffel">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f6f2e9;background:#102429;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 10% 0,#28524b 0,transparent 55%),#102429}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.38;cursor:not-allowed}button:focus-visible,input:focus-visible{outline:3px solid #ffda83;outline-offset:3px}.shell{max-width:770px;margin:auto;padding:22px 16px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{font-size:1.6rem;font-weight:850;letter-spacing:-.04em}.brand span{color:#f6bf64}.eyebrow{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:#bdcfc8}.mini{background:#ffffff17;border:1px solid #ffffff29;color:#fff;border-radius:12px;padding:10px 12px}.panel{background:#f7f2e8;color:#1c3335;border-radius:23px;padding:20px;box-shadow:0 12px 35px #0002;margin-bottom:15px}.panel.dark{background:#1b3c3c;color:#f7f2e8;border:1px solid #ffffff20}.intro{padding-top:45px;padding-bottom:32px}.intro h1{font-size:clamp(2rem,7vw,3.4rem);line-height:1.04;letter-spacing:-.055em;margin:8px 0 15px}.intro p{color:#4c5e5c;line-height:1.5}.field{display:block;font-weight:750;margin:18px 0 8px}.choicegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.choice{border:2px solid #d7dfd7;background:white;color:#203b3c;border-radius:15px;text-align:left;padding:15px 12px;min-height:105px}.choice strong{display:block;font-size:1.04rem;margin:4px 0}.choice small{color:#657574}.choice.selected{border-color:#c8852b;background:#fff1d6}.fieldrow{display:flex;gap:10px;align-items:center}.fieldrow input,.name-input{min-width:0;width:100%;padding:13px;border:1px solid #bbc9c3;border-radius:12px;background:#fff;color:#173433}.fieldrow input{width:85px}.names{display:grid;gap:8px;margin-top:10px}.primary{width:100%;border:0;border-radius:15px;background:#efaf50;color:#21312c;font-weight:850;padding:15px;font-size:1.05rem;box-shadow:inset 0 -2px #0001}.primary:active{transform:translateY(1px)}.secondary{border:1px solid #b6c5be;background:#fff;color:#23403b;border-radius:12px;font-weight:750;padding:11px 13px}.secondary.dark-btn{background:#ffffff12;color:#fff;border-color:#ffffff4f}.hidden{display:none!important}.statusline{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.turnname{font-size:1.65rem;letter-spacing:-.035em;font-weight:850;margin:4px 0}.badge{display:inline-block;padding:7px 11px;background:#d9ece4;border-radius:99px;font-size:.8rem;font-weight:750}.dicearea{touch-action:pan-y;user-select:none}.dice{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:24px 0}.die{position:relative;width:clamp(49px,15vw,80px);aspect-ratio:1;border:0;border-radius:15px;background:#fffdfa;box-shadow:0 5px 0 #bcb6ab,0 10px 20px #0003;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:10px;gap:3px;transition:transform .2s,background .2s}.die .pip{border-radius:50%;background:#243d3c;width:75%;height:75%;align-self:center;justify-self:center}.die.held{background:#ffd88d;transform:translateY(-8px);box-shadow:0 5px 0 #b38639,0 10px 18px #0003}.die.held:after{content:'✓';position:absolute;top:-11px;right:-7px;font-size:.76rem;font-weight:bold;background:#316c59;color:#fff;border-radius:20px;padding:3px 6px}.die.rolling{animation:shake .12s ease-in-out infinite alternate}@keyframes shake{from{transform:rotate(-12deg) translateY(-3px)}to{transform:rotate(12deg) translateY(3px)}}.die:not(:disabled):active{scale:.97}.dicehelp{text-align:center;color:#c6d7ce;font-size:.87rem;min-height:22px}.game-actions{display:flex;gap:9px;margin-top:16px}.game-actions .primary{flex:2}.game-actions .secondary{flex:1}.tabs{display:flex;gap:7px;margin:0 0 14px;overflow-x:auto;scrollbar-width:thin}.tab{background:#ffffff17;border:1px solid #ffffff25;color:#e2eae4;padding:10px 13px;border-radius:99px;white-space:nowrap;font-weight:750}.tab.active{background:#efaf50;color:#1b3734;border-color:#efaf50}.sectiontitle{font-size:1.05rem;font-weight:850;margin:18px 0 7px}.score-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #dfe5dc;min-height:55px}.score-row .name{font-weight:700}.score-row small{display:block;font-size:.73rem;color:#71817b;font-weight:500;margin-top:1px}.value{min-width:90px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}.scorebtn{min-width:95px;border-radius:11px;padding:10px 12px;border:1px solid #cfdbd2;color:#17403a;background:#fff;font-weight:850}.scorebtn.available{background:#e0f1e8;border-color:#90c8ae}.scorebtn.filled{background:#f2ede3;color:#65726a;border-color:transparent}.scorebtn:disabled{opacity:1;cursor:default}.scorebtn:disabled:not(.filled){opacity:.48}.subtotal{background:#e1ece4;margin:0 -10px;padding:12px 10px;border:0;border-radius:9px}.subtotal .name{color:#36594a}.subtotal .value{color:#205844}.hint{font-size:.83rem;line-height:1.45;color:#748078}.warning{background:#fff0d7;padding:12px;border-radius:12px;color:#714817;font-size:.88rem;line-height:1.45}.summarybox{background:#21413d;color:#fff;border-radius:15px;padding:18px;margin-top:17px;display:flex;justify-content:space-between;align-items:center}.summarybox strong:last-child{font-size:1.7rem}.footeractions{display:flex;justify-content:space-between;gap:10px;margin:18px 0}.modal-backdrop{position:fixed;inset:0;background:#001b1bb9;display:grid;place-items:center;padding:18px;z-index:9}.modal{width:min(100%,440px);border-radius:22px;padding:22px;background:#fffaf0;color:#1c3432;box-shadow:0 20px 70px #0006}.modal h2{margin:0 0 8px}.modal p{line-height:1.48}.modal .btns{display:flex;gap:9px;margin-top:18px}.modal .btns button{flex:1}.result{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:13px 5px;border-bottom:1px solid #ddd}.muted{color:#647971}.rule-note{font-size:.8rem;color:#75847f;margin:10px 0 0}.only-scores{font-size:.8rem;opacity:.8;margin-top:5px}#dicePanel.no-dice{display:none}@media(max-width:430px){.shell{padding:13px 12px 36px}.panel{padding:16px;border-radius:19px}.die{padding:8px;border-radius:12px}.choice{padding:12px 9px}.scorebtn{min-width:78px}.score-row{gap:5px}}
 
@@ -18,7 +24,7 @@
 <div id="namesWrap"><label class="field">Spielername</label><div id="nameFields" class="names"></div></div>
 <label class="field">Wie möchtest du würfeln?</label><div class="choicegrid"><button class="choice selected" data-dice-mode="digital" type="button">🎲<strong>Digital</strong><small>Würfeln und Punkte automatisch eintragen</small></button><button class="choice" data-dice-mode="manual" type="button">✍️<strong>Echte Würfel</strong><small>Punkte selbst in den Block tippen</small></button></div>
 <p class="hint">Im Computermodus würfelt der Gegner selbst und entscheidet eigenständig, welche Würfel er behält und wo er Punkte einträgt. Dein Spielstand wird automatisch gespeichert.</p><button id="startBtn" class="primary" type="button">Spiel starten →</button></section>
-<div id="game" class="hidden"><div class="tabs" id="playerTabs" aria-label="Spielerübersicht"></div><section class="panel dark" id="dicePanel"><div class="statusline"><div><div class="eyebrow">Am Zug</div><div id="currentPlayerName" class="turnname"></div></div><div id="rollBadge" class="badge">Wurf 1 von 3</div></div><div id="diceArea" class="dicearea"><div class="dice" id="dice" aria-label="Würfel"></div><div class="dicehelp" id="diceHelp">Tippe auf „Würfeln“ oder wische nach oben.</div></div><div class="game-actions"><button id="rollBtn" class="primary" type="button">🎲 Würfeln</button><button id="scoresBtn" class="secondary dark-btn" type="button">Zum Block ↓</button></div></section>
+<div id="game" class="hidden"><div class="tabs" id="playerTabs" aria-label="Spielerübersicht"></div><section class="panel dark" id="dicePanel"><div class="statusline"><div><div class="eyebrow">Am Zug</div><div id="currentPlayerName" class="turnname"></div></div><div id="rollBadge" class="badge">Wurf 1 von 3</div></div><div id="diceArea" class="dicearea"><div id="rollScene" class="roll-scene hidden" aria-label="Animierter Würfelwurf"><div id="rollCanvas" style="width:100%;height:100%"></div><div class="roll-caption">🎲 Die Würfel rollen …</div></div><div class="dice" id="dice" aria-label="Würfel"></div><div class="dicehelp" id="diceHelp">Tippe auf „Würfeln“ oder wische nach oben.</div></div><div class="game-actions"><button id="rollBtn" class="primary" type="button">🎲 Würfeln</button><button id="scoresBtn" class="secondary dark-btn" type="button">Zum Block ↓</button></div></section>
 <section id="scorePanel" class="panel"><div class="statusline"><div><div class="eyebrow">Spielblock</div><h2 style="margin:4px 0 10px" id="scorePlayerName">Spieler</h2></div><span class="badge" id="progressBadge"></span></div><p id="scoreHint" class="hint"></p><div id="scoreRows"></div><div class="summarybox"><strong>GESAMTPUNKTE</strong><strong id="totalValue">0</strong></div><p class="rule-note">Klassische Wertung mit 35 Bonuspunkten ab 63 Punkten oben. Zusätzliche Kniffel-/Joker-Sonderregeln sind in dieser Version nicht enthalten.</p></section>
 <div class="footeractions"><button id="overviewBtn" class="secondary" type="button">🏆 Übersicht</button><button id="resetBtn" class="secondary" type="button">↻ Neue Partie</button></div></div></main><div id="modalHost"></div>
 <script>
@@ -59,7 +65,7 @@ function diceDependencies(){
   import('https://cdn.jsdelivr.net/npm/three@0.170.0/+esm'),
   import('https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm')
  ]).then(([THREE,CANNON])=>({THREE,CANNON}));
- return threeDepsPromise;
+ return Promise.race([threeDepsPromise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('3D-Ladezeit überschritten')),5500))]);
 }
 function faceTexture(THREE,face){
  const c=document.createElement('canvas');c.width=c.height=256;
@@ -225,39 +231,58 @@ function botDecision(d,rolls,scores){
 function scheduleBot(){
  clearTimeout(botTimer);
  if(!isBotTurn()||botBusy)return;
- botTimer=setTimeout(()=>{void playBotTurn()},600);
+ botTimer=setTimeout(()=>{void playBotTurn()},450);
 }
+const botPause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function playBotTurn(){
  if(!isBotTurn()||botBusy)return;
  botBusy=true;
+ const playerIndex=state.active;
+ const player=state.players[playerIndex];
+ const stillMyTurn=()=>state&&!state.finished&&state.active===playerIndex&&state.players[playerIndex]===player;
  try{
-  const p=state.players[state.active];
-  // Bei echten Würfeln darf der menschliche Spieler manuell werten,
-  // der Computer simuliert seine Würfe trotzdem selbst.
   resetDice();render();
   for(let step=1;step<=3;step++){
-   if(!isBotTurn())return;
+   if(!stillMyTurn())return;
    state.rolls=step;
    for(let i=0;i<5;i++)if(!state.held[i])state.dice[i]=randomDie();
    render();
    $('rollBadge').textContent=`🤖 Wurf ${step} von 3`;
    $('diceHelp').textContent='🤖 Der Computer überlegt …';
-   await new Promise(resolve=>setTimeout(resolve,850));
-   const choice=botDecision(state.dice,step,p.scores);
+   await botPause(550);
+   if(!stillMyTurn())return;
+   const choice=botDecision(state.dice,step,player.scores);
    if(choice.action==='score'||step===3){
     const key=choice.key;
     const pts=calculate(key,state.dice);
-    $('diceHelp').textContent=`🤖 ${p.name} wählt ${categories.find(c=>c[0]===key)[1]}: ${pts} Punkte`;
-    await new Promise(resolve=>setTimeout(resolve,800));
-    botBusy=false;
+    $('diceHelp').textContent=`🤖 ${player.name} wählt ${categories.find(c=>c[0]===key)[1]}: ${pts} Punkte`;
+    await botPause(500);
+    if(!stillMyTurn())return;
+    // Nur ein Wertungseintrag pro Runde; nach dem Wechsel wird die KI erneut geplant.
     commitScore(key,pts);
     return;
    }
    state.held=choice.keep;
    render();
-   await new Promise(resolve=>setTimeout(resolve,400));
+   await botPause(250);
   }
- }finally{botBusy=false;}
+ }catch(error){
+  console.error('Computerzug konnte nicht abgeschlossen werden:',error);
+  // Bei einem Fehler keinen blockierten KI-Zug hinterlassen.
+  if(stillMyTurn()){
+   const free=categories.map(c=>c[0]).filter(key=>player.scores[key]===undefined);
+   if(free.length){
+    const dice=state.dice.every(n=>Number.isInteger(n)&&n>=1&&n<=6)?state.dice:[1,2,3,4,5];
+    const key=free.sort((a,b)=>calculate(b,dice)-calculate(a,dice))[0];
+    commitScore(key,calculate(key,dice));
+   }
+  }
+ }finally{
+  botBusy=false;
+  // Wichtig: commitScore wurde bei noch aktivem botBusy aufgerufen.
+  // Darum wird der nächste Computerzug erst hier geplant.
+  if(isBotTurn())scheduleBot();
+ }
 }
 
 function showModal(content,bind){$('modalHost').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true">${content}</div></div>`;if(bind)bind()}
