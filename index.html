@@ -13,11 +13,11 @@
 </head>
 <body><main class="shell"><header class="top"><div class="brand">🎲 <span>KNIFFEL</span> CLUB</div><button id="menuBtn" class="mini hidden" type="button">⚙️ Neues Spiel</button></header>
 <section id="setup" class="panel intro"><div class="eyebrow">Dein digitaler Spieleabend</div><h1>Fünf Würfel.<br>Ein guter Wurf.</h1><p>Spielt gemeinsam an einem Gerät oder nutzt jeweils euren eigenen digitalen Kniffelblock – ganz ohne Anmeldung.</p>
-<label class="field">Wie spielt ihr?</label><div class="choicegrid"><button class="choice selected" data-mode="solo" type="button">📱<strong>Eigener Block</strong><small>Ein Spielblock auf diesem Gerät</small></button><button class="choice" data-mode="group" type="button">👥<strong>Gemeinsam</strong><small>Mehrere Spieler auf diesem Gerät</small></button></div>
+<label class="field">Wie spielt ihr?</label><div class="choicegrid"><button class="choice selected" data-mode="solo" type="button">📱<strong>Eigener Block</strong><small>Ein Spielblock auf diesem Gerät</small></button><button class="choice" data-mode="group" type="button">👥<strong>Gemeinsam</strong><small>Mehrere Spieler auf diesem Gerät</small></button><button class="choice" data-mode="cpu" type="button">🤖<strong>Gegen Computer</strong><small>Du gegen einen virtuellen Gegner</small></button></div>
 <div id="countWrap" class="hidden"><label class="field" for="playerCount">Anzahl der Spieler (2–8)</label><div class="fieldrow"><input id="playerCount" type="number" inputmode="numeric" min="2" max="8" value="2"><span>Spieler</span></div></div>
 <div id="namesWrap"><label class="field">Spielername</label><div id="nameFields" class="names"></div></div>
 <label class="field">Wie möchtest du würfeln?</label><div class="choicegrid"><button class="choice selected" data-dice-mode="digital" type="button">🎲<strong>Digital</strong><small>Würfeln und Punkte automatisch eintragen</small></button><button class="choice" data-dice-mode="manual" type="button">✍️<strong>Echte Würfel</strong><small>Punkte selbst in den Block tippen</small></button></div>
-<p class="hint">Dein Spielstand wird automatisch auf diesem Gerät gespeichert.</p><button id="startBtn" class="primary" type="button">Spiel starten →</button></section>
+<p class="hint">Im Computermodus würfelt der Gegner selbst und entscheidet eigenständig, welche Würfel er behält und wo er Punkte einträgt. Dein Spielstand wird automatisch gespeichert.</p><button id="startBtn" class="primary" type="button">Spiel starten →</button></section>
 <div id="game" class="hidden"><div class="tabs" id="playerTabs" aria-label="Spielerübersicht"></div><section class="panel dark" id="dicePanel"><div class="statusline"><div><div class="eyebrow">Am Zug</div><div id="currentPlayerName" class="turnname"></div></div><div id="rollBadge" class="badge">Wurf 1 von 3</div></div><div id="diceArea" class="dicearea"><div class="dice" id="dice" aria-label="Würfel"></div><div class="dicehelp" id="diceHelp">Tippe auf „Würfeln“ oder wische nach oben.</div></div><div class="game-actions"><button id="rollBtn" class="primary" type="button">🎲 Würfeln</button><button id="scoresBtn" class="secondary dark-btn" type="button">Zum Block ↓</button></div></section>
 <section id="scorePanel" class="panel"><div class="statusline"><div><div class="eyebrow">Spielblock</div><h2 style="margin:4px 0 10px" id="scorePlayerName">Spieler</h2></div><span class="badge" id="progressBadge"></span></div><p id="scoreHint" class="hint"></p><div id="scoreRows"></div><div class="summarybox"><strong>GESAMTPUNKTE</strong><strong id="totalValue">0</strong></div><p class="rule-note">Klassische Wertung mit 35 Bonuspunkten ab 63 Punkten oben. Zusätzliche Kniffel-/Joker-Sonderregeln sind in dieser Version nicht enthalten.</p></section>
 <div class="footeractions"><button id="overviewBtn" class="secondary" type="button">🏆 Übersicht</button><button id="resetBtn" class="secondary" type="button">↻ Neue Partie</button></div></div></main><div id="modalHost"></div>
@@ -25,32 +25,32 @@
 (()=>{'use strict';
 const STORAGE='kniffel-club-v1';
 const categories=[['ones','Einser','Alle Einsen'],['twos','Zweier','Alle Zweien'],['threes','Dreier','Alle Dreien'],['fours','Vierer','Alle Vieren'],['fives','Fünfer','Alle Fünfen'],['sixes','Sechser','Alle Sechsen'],['threeKind','Dreierpasch','Mindestens 3 gleiche'],['fourKind','Viererpasch','Mindestens 4 gleiche'],['fullHouse','Full House','3 gleiche + 2 gleiche'],['smallStraight','Kleine Straße','4 aufeinanderfolgende'],['largeStraight','Große Straße','5 aufeinanderfolgende'],['kniffel','Kniffel','5 gleiche'],['chance','Chance','Alle Augen zählen']];
-let mode='solo',diceMode='digital',state=null,viewPlayer=0,rolling=false;
+let mode='solo',diceMode='digital',state=null,viewPlayer=0,rolling=false,botBusy=false,botTimer=null;
 const $=id=>document.getElementById(id);
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state));}catch(e){console.warn('Speichern nicht möglich',e)}}
 function setSelected(attr,val){document.querySelectorAll(`[${attr}]`).forEach(el=>el.classList.toggle('selected',el.getAttribute(attr)===val))}
-function playerNames(){const fields=$('nameFields');fields.innerHTML='';const n=mode==='solo'?1:Math.max(2,Math.min(8,parseInt($('playerCount').value,10)||2));for(let i=0;i<n;i++){const el=document.createElement('input');el.className='name-input';el.maxLength=24;el.placeholder=mode==='solo'?'Dein Name (optional)':`Spieler ${i+1}`;el.setAttribute('aria-label',`Name Spieler ${i+1}`);el.value=previousNames[i]||'';el.addEventListener('input',()=>previousNames[i]=el.value);fields.append(el)}}
+function playerNames(){const fields=$('nameFields');fields.innerHTML='';const n=mode==='solo'?1:mode==='cpu'?1:Math.max(2,Math.min(8,parseInt($('playerCount').value,10)||2));for(let i=0;i<n;i++){const el=document.createElement('input');el.className='name-input';el.maxLength=24;el.placeholder=mode==='solo'?'Dein Name (optional)':`Spieler ${i+1}`;el.setAttribute('aria-label',`Name Spieler ${i+1}`);el.value=previousNames[i]||'';el.addEventListener('input',()=>previousNames[i]=el.value);fields.append(el)}}
 let previousNames=[];
-document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{previousNames=[...$('nameFields').querySelectorAll('input')].map(e=>e.value);mode=b.dataset.mode;setSelected('data-mode',mode);$('countWrap').classList.toggle('hidden',mode==='solo');$('namesWrap').querySelector('.field').textContent=mode==='solo'?'Spielername':'Spielernamen';playerNames()}));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{previousNames=[...$('nameFields').querySelectorAll('input')].map(e=>e.value);mode=b.dataset.mode;setSelected('data-mode',mode);$('countWrap').classList.toggle('hidden',mode!=='group');$('namesWrap').querySelector('.field').textContent=mode==='group'?'Spielernamen':'Dein Name';playerNames()}));
 document.querySelectorAll('[data-dice-mode]').forEach(b=>b.addEventListener('click',()=>{diceMode=b.dataset.diceMode;setSelected('data-dice-mode',diceMode)}));
 $('playerCount').addEventListener('input',()=>{previousNames=[...$('nameFields').querySelectorAll('input')].map(e=>e.value);playerNames()});
-function newGame(){const names=[...$('nameFields').querySelectorAll('input')].map((el,i)=>el.value.trim()||`Spieler ${i+1}`);state={version:1,mode,diceMode,players:names.map(name=>({name,scores:{}})),active:0,dice:[1,2,3,4,5],held:[false,false,false,false,false],rolls:0,finished:false};viewPlayer=0;save();render()}
+function newGame(){const names=[...$('nameFields').querySelectorAll('input')].map((el,i)=>el.value.trim()||`Spieler ${i+1}`);if(mode==='cpu')names.push('🤖 Kniffelbot');state={version:1,mode,diceMode,players:names.map((name,i)=>({name,scores:{},bot:mode==='cpu'&&i===1})),active:0,dice:[1,2,3,4,5],held:[false,false,false,false,false],rolls:0,finished:false};viewPlayer=0;save();render()}
 function totalScores(p){let upper=0,lower=0,filled=0;for(let i=0;i<categories.length;i++){const v=p.scores[categories[i][0]];if(v!==undefined){filled++;if(i<6)upper+=v;else lower+=v}}const bonus=upper>=63?35:0;return{upper,lower,bonus,total:upper+bonus+lower,filled}}
 function calculate(key,d){if(d.length!==5)return 0;const count=[0,0,0,0,0,0,0];d.forEach(x=>count[x]++);const sum=d.reduce((a,b)=>a+b,0);const idx=['ones','twos','threes','fours','fives','sixes'].indexOf(key);if(idx>=0)return count[idx+1]*(idx+1);if(key==='threeKind')return count.some(v=>v>=3)?sum:0;if(key==='fourKind')return count.some(v=>v>=4)?sum:0;if(key==='fullHouse')return count.includes(3)&&count.includes(2)?25:0;if(key==='smallStraight')return [[1,2,3,4],[2,3,4,5],[3,4,5,6]].some(seq=>seq.every(v=>count[v]>0))?30:0;if(key==='largeStraight')return [[1,2,3,4,5],[2,3,4,5,6]].some(seq=>seq.every(v=>count[v]>0))?40:0;if(key==='kniffel')return count.includes(5)?50:0;if(key==='chance')return sum;return 0}
 const pipPositions={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
-function paintDice(){const parent=$('dice');parent.innerHTML='';state.dice.forEach((v,i)=>{const die=document.createElement('button');die.type='button';die.className='die'+(state.held[i]?' held':'')+(rolling&&!state.held[i]?' rolling':'');die.disabled=rolling||state.finished||state.rolls===0||state.rolls>=3||state.held[i]; // held dice can be unheld below
-if(state.held[i]&&!rolling&&state.rolls<3)die.disabled=false;
-die.setAttribute('aria-label',`Würfel ${i+1}: ${v}${state.held[i]?', gehalten':''}`);die.setAttribute('aria-pressed',String(state.held[i]));for(let pos=1;pos<=9;pos++){const cell=document.createElement('span');if(pipPositions[v].includes(pos))cell.className='pip';die.append(cell)}die.addEventListener('click',()=>{if(state.rolls===0||state.rolls>=3||rolling||state.finished)return;state.held[i]=!state.held[i];save();paintDice()});parent.append(die)})}
-function render(){if(!state){$('setup').classList.remove('hidden');$('game').classList.add('hidden');$('menuBtn').classList.add('hidden');return}$('setup').classList.add('hidden');$('game').classList.remove('hidden');$('menuBtn').classList.remove('hidden');$('dicePanel').classList.toggle('no-dice',state.diceMode==='manual');const active=state.players[state.active];$('currentPlayerName').textContent=active.name;$('rollBadge').textContent=`Wurf ${Math.min(state.rolls+1,3)} von 3`;$('rollBtn').textContent=state.rolls===0?'🎲 Würfeln':state.rolls>=3?'Alle Würfe verbraucht':'🎲 Erneut würfeln';$('rollBtn').disabled=state.finished||state.rolls>=3||rolling;$('diceHelp').textContent=state.rolls===0?'Tippe auf „Würfeln“ oder wische nach oben.':state.rolls<3?'Würfel antippen zum Festhalten • Zum Würfeln wischen':'Wähle jetzt unten eine Kategorie.';paintDice();const tabs=$('playerTabs');tabs.innerHTML='';state.players.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='tab'+(i===viewPlayer?' active':'');b.textContent=`${i===state.active&&!state.finished?'● ':''}${p.name} · ${totalScores(p).total}`;b.addEventListener('click',()=>{viewPlayer=i;renderScores()});tabs.append(b)});renderScores()}
+function paintDice(){const parent=$('dice');parent.innerHTML='';state.dice.forEach((v,i)=>{const die=document.createElement('button');die.type='button';die.className='die'+(state.held[i]?' held':'')+(rolling&&!state.held[i]?' rolling':'');die.disabled=rolling||state.finished||isBotTurn()||state.rolls===0||state.rolls>=3||state.held[i]; // held dice can be unheld below
+if(state.held[i]&&!rolling&&state.rolls<3&&!isBotTurn())die.disabled=false;
+die.setAttribute('aria-label',`Würfel ${i+1}: ${v}${state.held[i]?', gehalten':''}`);die.setAttribute('aria-pressed',String(state.held[i]));for(let pos=1;pos<=9;pos++){const cell=document.createElement('span');if(pipPositions[v].includes(pos))cell.className='pip';die.append(cell)}die.addEventListener('click',()=>{if(state.rolls===0||state.rolls>=3||rolling||state.finished||isBotTurn())return;state.held[i]=!state.held[i];save();paintDice()});parent.append(die)})}
+function render(){if(!state){$('setup').classList.remove('hidden');$('game').classList.add('hidden');$('menuBtn').classList.add('hidden');return}$('setup').classList.add('hidden');$('game').classList.remove('hidden');$('menuBtn').classList.remove('hidden');$('dicePanel').classList.toggle('no-dice',state.diceMode==='manual'&&!isBotTurn());const active=state.players[state.active];$('currentPlayerName').textContent=active.name;$('rollBadge').textContent=`Wurf ${Math.min(state.rolls+1,3)} von 3`;$('rollBtn').textContent=state.rolls===0?'🎲 Würfeln':state.rolls>=3?'Alle Würfe verbraucht':'🎲 Erneut würfeln';$('rollBtn').disabled=state.finished||state.rolls>=3||rolling||isBotTurn()||state.diceMode==='manual';$('diceHelp').textContent=isBotTurn()?'🤖 Der Computer würfelt und wählt selbst eine Kategorie.':state.rolls===0?'Tippe auf „Würfeln“ oder wische nach oben.':state.rolls<3?'Würfel antippen zum Festhalten • Zum Würfeln wischen':'Wähle jetzt unten eine Kategorie.';paintDice();const tabs=$('playerTabs');tabs.innerHTML='';state.players.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='tab'+(i===viewPlayer?' active':'');b.textContent=`${i===state.active&&!state.finished?'● ':''}${p.name} · ${totalScores(p).total}`;b.addEventListener('click',()=>{viewPlayer=i;renderScores()});tabs.append(b)});renderScores()}
 function row(name,value,description='',extra=''){return `<div class="score-row ${extra}"><div class="name">${escapeHtml(name)}${description?`<small>${escapeHtml(description)}</small>`:''}</div><div class="value">${value}</div></div>`}
-function renderScores(){const p=state.players[viewPlayer],t=totalScores(p),isActive=viewPlayer===state.active;[...$('playerTabs').children].forEach((b,i)=>b.classList.toggle('active',i===viewPlayer));$('scorePlayerName').textContent=p.name;$('progressBadge').textContent=`${t.filled} / 13 Felder`;$('scoreHint').textContent=state.finished?'Partie beendet.':state.diceMode==='manual'?(isActive?'Tippe ein freies Feld an und trage Punkte ein.':'Du siehst den Block eines anderen Spielers.'):isActive?(state.rolls?'Tippe auf ein freies Feld, um die angezeigten Punkte einzutragen.':'Erst würfeln, dann eine Kategorie auswählen.'):'Dieser Block ist zur Ansicht. Aktuell ist jemand anderes am Zug.';
+function renderScores(){const p=state.players[viewPlayer],t=totalScores(p),isActive=viewPlayer===state.active;[...$('playerTabs').children].forEach((b,i)=>b.classList.toggle('active',i===viewPlayer));$('scorePlayerName').textContent=p.name;$('progressBadge').textContent=`${t.filled} / 13 Felder`;$('scoreHint').textContent=state.finished?'Partie beendet.':isBotTurn()&&isActive?'Der Computer ist am Zug und trägt seine Punkte automatisch ein.':state.diceMode==='manual'?(isActive?'Tippe ein freies Feld an und trage Punkte ein.':'Du siehst den Block eines anderen Spielers.'):isActive?(state.rolls?'Tippe auf ein freies Feld, um die angezeigten Punkte einzutragen.':'Erst würfeln, dann eine Kategorie auswählen.'):'Dieser Block ist zur Ansicht. Aktuell ist jemand anderes am Zug.';
 let html='<div class="sectiontitle">Oberer Block</div>';
-function categoryRow(key,name,desc){const used=p.scores[key]!==undefined;const canPlay=isActive&&!state.finished&&(state.diceMode==='manual'||state.rolls>0);const v=used?p.scores[key]:state.diceMode==='digital'&&isActive&&state.rolls>0?calculate(key,state.dice):'–';const cls=used?'filled':canPlay?'available':'';return `<div class="score-row"><div class="name">${escapeHtml(name)}<small>${escapeHtml(desc)}</small></div><button type="button" class="scorebtn ${cls}" data-score="${key}" ${used||!canPlay?'disabled':''}>${used?v:canPlay&&state.diceMode==='manual'?'Eintragen':v}</button></div>`}
+function categoryRow(key,name,desc){const used=p.scores[key]!==undefined;const canPlay=isActive&&!isBotTurn()&&!state.finished&&(state.diceMode==='manual'||state.rolls>0);const v=used?p.scores[key]:state.diceMode==='digital'&&isActive&&state.rolls>0?calculate(key,state.dice):'–';const cls=used?'filled':canPlay?'available':'';return `<div class="score-row"><div class="name">${escapeHtml(name)}<small>${escapeHtml(desc)}</small></div><button type="button" class="scorebtn ${cls}" data-score="${key}" ${used||!canPlay?'disabled':''}>${used?v:canPlay&&state.diceMode==='manual'?'Eintragen':v}</button></div>`}
 categories.forEach(([key,name,desc],i)=>{if(i===6){html+=row('Summe oben',t.upper,'','subtotal')+row('Bonus',t.bonus,'35 Punkte ab 63 Punkten','subtotal')+row('Oben gesamt',t.upper+t.bonus,'','subtotal')+'<div class="sectiontitle">Unterer Block</div>'}html+=categoryRow(key,name,desc)});html+=row('Summe unten',t.lower,'','subtotal');$('scoreRows').innerHTML=html;$('totalValue').textContent=t.total;
 $('scoreRows').querySelectorAll('[data-score]').forEach(b=>b.addEventListener('click',()=>chooseScore(b.dataset.score)))}
-function chooseScore(key){if(rolling||state.finished||viewPlayer!==state.active||state.players[state.active].scores[key]!==undefined)return;if(state.diceMode==='digital'){if(!state.rolls)return;const points=calculate(key,state.dice);showModal(`<h2>${escapeHtml(categories.find(c=>c[0]===key)[1])}</h2><p>Du trägst <strong>${points} Punkte</strong> für ${escapeHtml(state.players[state.active].name)} ein.</p><div class="btns"><button class="secondary" id="cancelModal">Abbrechen</button><button class="primary" id="confirmScore">Eintragen</button></div>`,()=>{$('confirmScore').onclick=()=>commitScore(key,points);$('cancelModal').onclick=closeModal})}else{showModal(`<h2>${escapeHtml(categories.find(c=>c[0]===key)[1])}</h2><p>Punkte eintragen oder eine 0 zum Streichen.</p><input id="manualPoints" type="number" inputmode="numeric" min="0" max="999" value="0" class="name-input" aria-label="Punkte"><p class="hint">Achte auf die gültigen Kniffel-Punktwerte. Die Eingabe wird nicht anhand echter Würfel überprüft.</p><div class="btns"><button class="secondary" id="cancelModal">Abbrechen</button><button class="primary" id="confirmScore">Eintragen</button></div>`,()=>{$('confirmScore').onclick=()=>{const v=Number($('manualPoints').value);if(!Number.isInteger(v)||v<0||v>999){alert('Bitte eine ganze Punktzahl zwischen 0 und 999 eingeben.');return}commitScore(key,v)};$('cancelModal').onclick=closeModal;$('manualPoints').focus()})}}
-function commitScore(key,points){state.players[state.active].scores[key]=points;closeModal();const all=state.players.every(p=>totalScores(p).filled===13);if(all){state.finished=true;save();render();showOverview(true);return}let next=state.active;for(let tries=0;tries<state.players.length;tries++){next=(next+1)%state.players.length;if(totalScores(state.players[next]).filled<13)break}state.active=next;viewPlayer=next;resetDice();save();render();if(state.diceMode==='manual')$('scorePanel').scrollIntoView({behavior:'smooth',block:'start'});else $('dicePanel').scrollIntoView({behavior:'smooth',block:'start'})}
+function chooseScore(key){if(isBotTurn()||rolling||state.finished||viewPlayer!==state.active||state.players[state.active].scores[key]!==undefined)return;if(state.diceMode==='digital'){if(!state.rolls)return;const points=calculate(key,state.dice);showModal(`<h2>${escapeHtml(categories.find(c=>c[0]===key)[1])}</h2><p>Du trägst <strong>${points} Punkte</strong> für ${escapeHtml(state.players[state.active].name)} ein.</p><div class="btns"><button class="secondary" id="cancelModal">Abbrechen</button><button class="primary" id="confirmScore">Eintragen</button></div>`,()=>{$('confirmScore').onclick=()=>commitScore(key,points);$('cancelModal').onclick=closeModal})}else{showModal(`<h2>${escapeHtml(categories.find(c=>c[0]===key)[1])}</h2><p>Punkte eintragen oder eine 0 zum Streichen.</p><input id="manualPoints" type="number" inputmode="numeric" min="0" max="999" value="0" class="name-input" aria-label="Punkte"><p class="hint">Achte auf die gültigen Kniffel-Punktwerte. Die Eingabe wird nicht anhand echter Würfel überprüft.</p><div class="btns"><button class="secondary" id="cancelModal">Abbrechen</button><button class="primary" id="confirmScore">Eintragen</button></div>`,()=>{$('confirmScore').onclick=()=>{const v=Number($('manualPoints').value);if(!Number.isInteger(v)||v<0||v>999){alert('Bitte eine ganze Punktzahl zwischen 0 und 999 eingeben.');return}commitScore(key,v)};$('cancelModal').onclick=closeModal;$('manualPoints').focus()})}}
+function commitScore(key,points){state.players[state.active].scores[key]=points;closeModal();const all=state.players.every(p=>totalScores(p).filled===13);if(all){state.finished=true;save();render();showOverview(true);return}let next=state.active;for(let tries=0;tries<state.players.length;tries++){next=(next+1)%state.players.length;if(totalScores(state.players[next]).filled<13)break}state.active=next;viewPlayer=next;resetDice();save();render();scheduleBot();if(state.diceMode==='manual'&&!isBotTurn())$('scorePanel').scrollIntoView({behavior:'smooth',block:'start'});else $('dicePanel').scrollIntoView({behavior:'smooth',block:'start'})}
 function resetDice(){state.rolls=0;state.held=[false,false,false,false,false];state.dice=[1,2,3,4,5]}
 function randomDie(){const a=new Uint32Array(1);if(window.crypto?.getRandomValues){window.crypto.getRandomValues(a);return a[0]%6+1}return Math.floor(Math.random()*6)+1}
 let threeDepsPromise=null;
@@ -138,7 +138,7 @@ async function roll3d(indices){
  }
 }
 async function roll(){
- if(!state||state.diceMode!=='digital'||rolling||state.finished||state.rolls>=3)return;
+ if(!state||state.diceMode!=='digital'||isBotTurn()||rolling||state.finished||state.rolls>=3)return;
  const indices=state.dice.map((v,i)=>state.held[i]?-1:i).filter(i=>i>=0);
  if(!indices.length){$('diceHelp').textContent='Alle Würfel werden gehalten. Löse mindestens einen Würfel.';return}
  rolling=true;state.rolls++;$('rollBtn').disabled=true;$('scoresBtn').disabled=true;
@@ -147,12 +147,125 @@ async function roll(){
  indices.forEach((idx,i)=>state.dice[idx]=result[i]);rolling=false;$('scoresBtn').disabled=false;save();render();
 }
 
+
+function isBotTurn(){return !!(state&&!state.finished&&state.players[state.active]?.bot)}
+function botScoreValue(key,d,scores){
+ const n=calculate(key,d);const used=Object.keys(scores);
+ const upperKeys=['ones','twos','threes','fours','fives','sixes'];
+ const upper=upperKeys.reduce((sum,k)=>sum+(scores[k]||0),0);
+ const upperOpen=upperKeys.filter(k=>scores[k]===undefined).length;
+ const upperGoal=Math.max(0,63-upper);
+ const baseline={ones:2.1,twos:4.2,threes:6.3,fours:8.4,fives:10.5,sixes:12.6,threeKind:18,fourKind:19,fullHouse:18,smallStraight:20,largeStraight:24,kniffel:17,chance:20};
+ let value=n-baseline[key];
+ if(upperKeys.includes(key)){
+  const face=upperKeys.indexOf(key)+1;
+  // Bonusziele: drei gleiche Zahlen pro Oberblock bringen die Bonus-Schwelle näher.
+  value+=n>=face*3?6:0;
+  if(upperOpen&&upperGoal<=upperOpen*face*3)value+=n*.12;
+ }
+ if(key==='kniffel'&&n===50)value+=23;
+ if(key==='largeStraight'&&n===40)value+=9;
+ if(key==='smallStraight'&&n===30)value+=5;
+ // Eingetragene Nullen sind manchmal notwendig; versuche wertvolle Kategorien zu erhalten.
+ if(n===0)value-=key==='kniffel'?2:key==='ones'?1:9;
+ return value;
+}
+// Schätzt die erfolgversprechenden Kategorien, statt blind zufällige Würfel zu halten.
+function botKeepForTarget(key,d){
+ const counts=Array.from({length:7},(_,i)=>d.filter(v=>v===i).length);
+ const vals=d.map((v,i)=>({v,i}));
+ const upper=['ones','twos','threes','fours','fives','sixes'];
+ if(upper.includes(key))return d.map(v=>v===upper.indexOf(key)+1);
+ if(['threeKind','fourKind','kniffel'].includes(key)){
+  const face=[1,2,3,4,5,6].sort((a,b)=>counts[b]-counts[a]||b-a)[0];
+  return d.map(v=>v===face);
+ }
+ if(key==='fullHouse'){
+  const ranks=[1,2,3,4,5,6].sort((a,b)=>counts[b]-counts[a]||b-a);
+  let takenA=0,takenB=0;
+  return d.map(v=>{if(v===ranks[0]&&takenA<3){takenA++;return true}if(v===ranks[1]&&takenB<2){takenB++;return true}return false});
+ }
+ if(key==='smallStraight'||key==='largeStraight'){
+  const seqs=key==='largeStraight'?[[1,2,3,4,5],[2,3,4,5,6]]:[[1,2,3,4],[2,3,4,5],[3,4,5,6]];
+  const best=seqs.sort((a,b)=>b.filter(x=>counts[x]).length-a.filter(x=>counts[x]).length)[0];
+  const seen=new Set();return d.map(v=>{if(best.includes(v)&&!seen.has(v)){seen.add(v);return true}return false});
+ }
+ // Chance: Hohe Zahlen behalten.
+ return d.map(v=>v>=4);
+}
+function botDecision(d,rolls,scores){
+ const free=categories.map(c=>c[0]).filter(k=>scores[k]===undefined);
+ const candidates=[];
+ for(const key of free){
+  const keep=botKeepForTarget(key,d);
+  const kept=keep.filter(Boolean).length;
+  const current=botScoreValue(key,d,scores);
+  let priority=current;
+  if(rolls<3){
+   // Einfacher Erwartungswert der verbleibenden Würfe – gezielte Auswahl passender Augen.
+   const upper=['ones','twos','threes','fours','fives','sixes'];
+   if(upper.includes(key))priority+=((5-kept)*.38)*(upper.indexOf(key)+1)+kept*1.1;
+   else if(key==='kniffel')priority+=Math.pow(kept,2)*1.4+(rolls===1?4:0);
+   else if(key==='largeStraight')priority+=kept*4.7;
+   else if(key==='smallStraight')priority+=kept*3.7;
+   else if(key==='fullHouse')priority+=kept*3.1;
+   else if(key==='fourKind')priority+=kept*3.3;
+   else if(key==='threeKind')priority+=kept*2.4;
+   else priority+=kept*1.7;
+  }
+  candidates.push({key,keep,priority,current});
+ }
+ candidates.sort((a,b)=>b.priority-a.priority);
+ const bestNow=[...candidates].sort((a,b)=>b.current-a.current)[0];
+ if(rolls===3||bestNow.current>=27||(!candidates.length))return{action:'score',key:bestNow.key};
+ const best=candidates[0];
+ if(best.keep.every(Boolean))return{action:'score',key:bestNow.key};
+ return{action:'roll',keep:best.keep};
+}
+function scheduleBot(){
+ clearTimeout(botTimer);
+ if(!isBotTurn()||botBusy)return;
+ botTimer=setTimeout(()=>{void playBotTurn()},600);
+}
+async function playBotTurn(){
+ if(!isBotTurn()||botBusy)return;
+ botBusy=true;
+ try{
+  const p=state.players[state.active];
+  // Bei echten Würfeln darf der menschliche Spieler manuell werten,
+  // der Computer simuliert seine Würfe trotzdem selbst.
+  resetDice();render();
+  for(let step=1;step<=3;step++){
+   if(!isBotTurn())return;
+   state.rolls=step;
+   for(let i=0;i<5;i++)if(!state.held[i])state.dice[i]=randomDie();
+   render();
+   $('rollBadge').textContent=`🤖 Wurf ${step} von 3`;
+   $('diceHelp').textContent='🤖 Der Computer überlegt …';
+   await new Promise(resolve=>setTimeout(resolve,850));
+   const choice=botDecision(state.dice,step,p.scores);
+   if(choice.action==='score'||step===3){
+    const key=choice.key;
+    const pts=calculate(key,state.dice);
+    $('diceHelp').textContent=`🤖 ${p.name} wählt ${categories.find(c=>c[0]===key)[1]}: ${pts} Punkte`;
+    await new Promise(resolve=>setTimeout(resolve,800));
+    botBusy=false;
+    commitScore(key,pts);
+    return;
+   }
+   state.held=choice.keep;
+   render();
+   await new Promise(resolve=>setTimeout(resolve,400));
+  }
+ }finally{botBusy=false;}
+}
+
 function showModal(content,bind){$('modalHost').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true">${content}</div></div>`;if(bind)bind()}
 function closeModal(){$('modalHost').innerHTML=''}
 function showOverview(end=false){const sorted=[...state.players].map(p=>({name:p.name,...totalScores(p)})).sort((a,b)=>b.total-a.total);showModal(`<h2>${end?'🏆 Partie beendet!':'🏆 Punktestand'}</h2><p class="muted">${end?'Alle 13 Kategorien wurden ausgefüllt.':'Zwischenstand dieser Partie'}</p>${sorted.map((p,i)=>`<div class="result"><strong>${i+1}.</strong><span>${escapeHtml(p.name)}<small style="display:block" class="muted">${p.filled}/13 Felder</small></span><strong>${p.total}</strong></div>`).join('')}<div class="btns"><button class="secondary" id="closeOverview">Schließen</button>${end?'<button class="primary" id="anotherGame">Neue Partie</button>':''}</div>`,()=>{$('closeOverview').onclick=closeModal;if(end)$('anotherGame').onclick=()=>confirmNewGame()})}
-function confirmNewGame(){showModal(`<h2>Neue Partie?</h2><p>Dein aktueller Spielstand wird zurückgesetzt. Möchtest du dieselben Spieler und Einstellungen behalten?</p><div class="btns"><button class="secondary" id="keepPlaying">Abbrechen</button><button class="primary" id="restartSame">Neu starten</button></div><button style="margin-top:12px;width:100%" class="secondary" id="returnSetup">Andere Einstellungen wählen</button>`,()=>{$('keepPlaying').onclick=closeModal;$('restartSame').onclick=()=>{state.players.forEach(p=>p.scores={});state.active=0;state.finished=false;viewPlayer=0;resetDice();save();closeModal();render()};$('returnSetup').onclick=()=>{previousNames=state.players.map(p=>p.name);mode=state.mode;diceMode=state.diceMode;state=null;localStorage.removeItem(STORAGE);closeModal();setSelected('data-mode',mode);setSelected('data-dice-mode',diceMode);$('countWrap').classList.toggle('hidden',mode==='solo');$('playerCount').value=previousNames.length;playerNames();render()}})}
+function confirmNewGame(){if(botBusy)return;showModal(`<h2>Neue Partie?</h2><p>Dein aktueller Spielstand wird zurückgesetzt. Möchtest du dieselben Spieler und Einstellungen behalten?</p><div class="btns"><button class="secondary" id="keepPlaying">Abbrechen</button><button class="primary" id="restartSame">Neu starten</button></div><button style="margin-top:12px;width:100%" class="secondary" id="returnSetup">Andere Einstellungen wählen</button>`,()=>{$('keepPlaying').onclick=closeModal;$('restartSame').onclick=()=>{state.players.forEach(p=>p.scores={});state.active=0;state.finished=false;viewPlayer=0;resetDice();save();closeModal();render()};$('returnSetup').onclick=()=>{previousNames=state.players.filter(p=>!p.bot).map(p=>p.name);mode=state.mode;diceMode=state.diceMode;state=null;localStorage.removeItem(STORAGE);closeModal();setSelected('data-mode',mode);setSelected('data-dice-mode',diceMode);$('countWrap').classList.toggle('hidden',mode!=='group');$('playerCount').value=previousNames.length;playerNames();render()}})}
 $('startBtn').onclick=newGame;$('menuBtn').onclick=confirmNewGame;$('resetBtn').onclick=confirmNewGame;$('overviewBtn').onclick=()=>showOverview();$('rollBtn').onclick=roll;$('scoresBtn').onclick=()=>$('scorePanel').scrollIntoView({behavior:'smooth'});
 let startY=null;$('diceArea').addEventListener('touchstart',e=>{startY=e.touches[0].clientY},{passive:true});$('diceArea').addEventListener('touchend',e=>{if(startY!==null&&startY-e.changedTouches[0].clientY>40)roll();startY=null},{passive:true});
-try{const stored=JSON.parse(localStorage.getItem(STORAGE));if(stored?.version===1&&Array.isArray(stored.players)&&stored.players.length>0&&stored.players.every(p=>p&&typeof p.name==='string'&&p.scores&&typeof p.scores==='object')&&['manual','digital'].includes(stored.diceMode)&&Number.isInteger(stored.active)&&stored.active>=0&&stored.active<stored.players.length&&Array.isArray(stored.dice)&&stored.dice.length===5&&Array.isArray(stored.held)&&stored.held.length===5){state=stored;viewPlayer=state.active;mode=state.mode;diceMode=state.diceMode}}catch(e){console.warn(e)}playerNames();render();
+try{const stored=JSON.parse(localStorage.getItem(STORAGE));if(stored?.version===1&&Array.isArray(stored.players)&&stored.players.length>0&&stored.players.every(p=>p&&typeof p.name==='string'&&p.scores&&typeof p.scores==='object')&&['manual','digital'].includes(stored.diceMode)&&Number.isInteger(stored.active)&&stored.active>=0&&stored.active<stored.players.length&&Array.isArray(stored.dice)&&stored.dice.length===5&&Array.isArray(stored.held)&&stored.held.length===5){state=stored;viewPlayer=state.active;mode=state.mode;diceMode=state.diceMode}}catch(e){console.warn(e)}playerNames();render();scheduleBot();
 })();
 </script></body></html>
